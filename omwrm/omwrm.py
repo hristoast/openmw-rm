@@ -14,7 +14,7 @@ LICENSE = 'GPLv3'
 LOGFMT = '==> %(message)s'
 PROGNAME = "openmw-rm"
 RES_DIR_NAMES = ["BookArt", "Fonts", "Icons", "Meshes", "Music", "Sound", "Splash", "Textures", "Video"]
-VERSION = "0.3"
+VERSION = "0.4"
 
 
 def _get_version():
@@ -92,14 +92,14 @@ def get_content_paths(content_names: list, data_paths: list) -> list:
     return content_paths_with_order
 
 
-def flatten_resource_load_list(data_paths):
+def flatten_resource_load_list(cfg_path: str, verbose):
     """
     Traverse each data path, in order, checking for each asset that it adds.
 
     Return a list of each asset in use and the full path to the canonical file
     (the one in use when the game is loaded.)
     """
-    # resource_load_dict = {}
+    resource_load_dict = {}
     pass
 
 
@@ -162,28 +162,26 @@ def parse_args(args: list) -> None:
     emit_log("Force: {}".format(force), level=logging.DEBUG)
     emit_log("Verbose: {}".format(verbose), level=logging.DEBUG)
 
+    # Read the cfg file and gather data
+    data_paths, content = read_openmw_cfg(openmw_cfg, verbose)
+    checked_data_paths = check_data_paths(data_paths)
+    full_plugin_paths = get_content_paths(content, checked_data_paths)
+
+    # Do stuff with said data
     if parsed_args.flatten:
-        flatten_resource_load_list()
+        flatten_resource_load_list(content, data_paths)
+
     if parsed_args.scan or not parsed_args.flatten:
         # Do a normal scan by default or if specified alongside anything else
         emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
-        content, data_paths = read_openmw_cfg(openmw_cfg, verbose)
-
         emit_log("Found {} data paths...".format(len(data_paths)))
-        checked_data_paths = check_data_paths(data_paths)
         emit_log("Verified {} as existing.".format(len(checked_data_paths)))
-
         emit_log("Found {} activated plugins...".format(len(content)))
-        full_plugin_paths = get_content_paths(content, checked_data_paths)
         emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
-
         emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
         for num, p in full_plugin_paths.items():
             emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
                      verbose=verbose)
-
-        # TODO: check all asset paths and print out which are the last loaded
-        # TODO: print out a sorted load order
 
     emit_log("END {0} run at {1}".format(
         PROGNAME,

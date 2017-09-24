@@ -83,6 +83,9 @@ class OpenMwRmTestCase(TestCase):
         sys.stdout = old_stdout
         sys.stderr = old_stderr
 
+    # TODO: Need tests that ensure the returned output is valid e.g. the
+    # TODO: cfg file is properly read and the values returned are accurate.
+
     def tearDown(self):
         shutil.rmtree(self.real_data_path1)
         shutil.rmtree(self.real_data_path2)
