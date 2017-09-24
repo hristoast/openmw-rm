@@ -19,14 +19,17 @@ VERSION = "0.2"
 
 def get_terminal_dims() -> tuple:
     tty = os.popen('stty size', 'r')
-    y, x = tty.read().split()
+    try:
+        y, x = tty.read().split()
+    except ValueError:
+        y, x = ["0", "0"]
     tty.close()
     return x, y
 
 
 def emit_log(msg: str, level=logging.INFO, quiet=False, verbose=False, *args, **kwargs) -> None:  # TODO: verify this return type
     if not quiet:
-        if not verbose:
+        if not verbose and int(get_terminal_dims()[0]) > 0:
             msg = textwrap.shorten(msg, width=int(get_terminal_dims()[0]) - 5,
                                    placeholder="...")
         if level == logging.DEBUG:
