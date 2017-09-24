@@ -92,3 +92,6 @@ tramp
 # cask packages
 .cask/
 
+# built executable and sha256sum
+openmw-rm-*
+openmw-rm-*.sha256sum
