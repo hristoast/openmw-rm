@@ -14,7 +14,7 @@ LICENSE = 'GPLv3'
 LOGFMT = '==> %(message)s'
 PROGNAME = "openmw-rm"
 RES_DIR_NAMES = ["BookArt", "Fonts", "Icons", "Meshes", "Music", "Sound", "Splash", "Textures", "Video"]
-VERSION = "0.2"
+VERSION = "0.3"
 
 
 def _get_version():
