@@ -65,7 +65,7 @@ class OpenMwRmTestCase(TestCase):
         old_stdout, old_stderr = sys.stdout, sys.stderr
         sys.stdout = open('/dev/null', 'w')
         sys.stderr = open('/dev/null', 'w')
-        r = read_openmw_cfg(self.cfg)
+        r = read_openmw_cfg(self.cfg, False)
         self.assertEqual(r, None)
         sys.stdout.close()
         sys.stderr.close()
@@ -77,7 +77,7 @@ class OpenMwRmTestCase(TestCase):
         sys.stdout = open('/dev/null', 'w')
         sys.stderr = open('/dev/null', 'w')
         with self.assertRaises(SystemExit):
-            read_openmw_cfg(self.cfg_fake)
+            read_openmw_cfg(self.cfg_fake, False)
         sys.stdout.close()
         sys.stderr.close()
         sys.stdout = old_stdout

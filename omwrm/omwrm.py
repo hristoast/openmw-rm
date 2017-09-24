@@ -69,17 +69,19 @@ def get_content_paths(content_names: list, data_paths: list) -> list:
     Takes two lists: the first a list of content names, the second a list of
     data paths which are expected to have been checked to exist already.
     """
-    full_content_paths = []
+    content_paths_with_order = {}
+    order_pos = 0
     for n in content_names:
         name = n.split('content=')[-1].rstrip()
         for p in data_paths:
             proposed_path = os.path.join(p, name)
             if os.path.exists(proposed_path):
-                full_content_paths.append(proposed_path)
-    return full_content_paths
+                order_pos += 1
+                content_paths_with_order.update({order_pos: proposed_path})
+    return content_paths_with_order
 
 
-def read_openmw_cfg(cfg_path: str) -> None:  # TODO: verify this return type
+def read_openmw_cfg(cfg_path: str, verbose) -> None:  # TODO: verify this return type
     content = []
     data_paths = []
     check_openmw_cfg_path(cfg_path)
@@ -97,6 +99,10 @@ def read_openmw_cfg(cfg_path: str) -> None:  # TODO: verify this return type
     emit_log("Found {} activated plugins...".format(len(content)))
     full_plugin_paths = get_content_paths(content, checked_data_paths)
     emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
+    emit_log("Current load order below:")
+    for num, p in full_plugin_paths.items():
+        emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
+                 verbose=verbose)
     # TODO: check all asset paths and print out which are the last loaded
     # TODO: print out a sorted load order
 
@@ -135,7 +141,7 @@ def parse_args(args: list) -> None:  # TODO: verify this return type
     emit_log("Force: {}".format(force), level=logging.DEBUG)
     emit_log("Verbose: {}".format(verbose), level=logging.DEBUG)
     emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
-    read_openmw_cfg(openmw_cfg)
+    read_openmw_cfg(openmw_cfg, verbose)
 
     emit_log("END {0} run at {1}".format(
         PROGNAME,
