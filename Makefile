@@ -13,15 +13,15 @@ endif
 
 clean:
 	@/bin/rm -fr build dist *.egg-info ./omwrm/__pycache__ ./omwrm/build ./omwrm/dist \
-	openmw-rm-* openmw-rm-*.sha256sum ./omwrm/openmw-rm.spec ./__pycache__
+	openmw-rm-* openmw-rm_*.sha256sum ./omwrm/openmw-rm.spec ./__pycache__
 
 exe: check_pyinstaller
 	@cd omwrm && \
 	~/.local/bin/pyinstaller --name openmw-rm --onefile omwrm.py && \
 	cd .. && \
 	mv omwrm/dist/openmw-rm openmw-rm-$(VERSION) && \
-	sha256sum openmw-rm-$(VERSION) > openmw-rm-$(VERSION).sha256sum && \
-	echo && echo BUILT: openmw-rm-$(VERSION) AND openmw-rm-$(VERSION).sha256sum
+	sha256sum openmw-rm-$(VERSION) > openmw-rm_$(VERSION).sha256sum && \
+	echo && echo BUILT: openmw-rm-$(VERSION) AND openmw-rm_$(VERSION).sha256sum
 
 install:
 	@pip3 install --compile --upgrade --user .

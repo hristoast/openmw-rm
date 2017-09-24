@@ -94,4 +94,4 @@ tramp
 
 # built executable and sha256sum
 openmw-rm-*
-openmw-rm-*.sha256sum
+openmw-rm_*.sha256sum
