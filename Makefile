@@ -3,6 +3,8 @@ VERSION = $(shell grep VERSION\  omwrm/omwrm.py | awk -F\" '{ print  $$2 }')
 
 .DEFAULT_GOAL:= exe
 
+all: clean test exe install
+
 check_pyinstaller:
 ifeq ($(HAVE_PYINSTALLER), 1)
 	@echo PyInstaller is required to build an executable!
