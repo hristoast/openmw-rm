@@ -1,9 +1,9 @@
 HAVE_PYINSTALLER = $(shell which pyinstaller 2>/dev/null && echo 0 || echo 1)
 VERSION = $(shell grep VERSION\  omwrm/omwrm.py | awk -F\" '{ print  $$2 }')
 
-.DEFAULT_GOAL:= exe
+.DEFAULT_GOAL:= install
 
-all: clean test exe install
+all: install-pip-pkgs clean test exe install
 
 check_pyinstaller:
 ifeq ($(HAVE_PYINSTALLER), 1)
@@ -17,14 +17,17 @@ clean:
 
 exe: check_pyinstaller
 	@cd omwrm && \
-	pyinstaller --name openmw-rm --onefile omwrm.py && \
+	~/.local/bin/pyinstaller --name openmw-rm --onefile omwrm.py && \
 	cd .. && \
 	mv omwrm/dist/openmw-rm openmw-rm-$(VERSION) && \
 	sha256sum openmw-rm-$(VERSION) > openmw-rm-$(VERSION).sha256sum && \
 	echo && echo BUILT: openmw-rm-$(VERSION) AND openmw-rm-$(VERSION).sha256sum
 
 install:
-	@pip3 install --compile --upgrade .
+	@pip3 install --compile --upgrade --user .
+
+install-pip-pkgs:
+	@pip3 install --user pyinstaller
 
 test:
 	@python3 test.py

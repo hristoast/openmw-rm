@@ -9,12 +9,12 @@ from typing import Union as T
 
 
 DEFAULT_CFG_FILE = os.path.join(os.getenv("HOME"), ".config", "openmw", "openmw.cfg")
-DESCRIPTION = "OpenMW Resource Manager - reads an openmw.cfg file to produce resource load information. Planned features include load order sorting ala mlox."
+DESCRIPTION = "OpenMW Resource Manager - reads an openmw.cfg file to produce resource load information."
 LICENSE = 'GPLv3'
 LOGFMT = '==> %(message)s'
 PROGNAME = "openmw-rm"
 RES_DIR_NAMES = ["BookArt", "Fonts", "Icons", "Meshes", "Music", "Sound", "Splash", "Textures", "Video"]
-VERSION = "0.1"
+VERSION = "0.2"
 
 
 def get_terminal_dims() -> tuple:
@@ -81,6 +81,11 @@ def get_content_paths(content_names: list, data_paths: list) -> list:
     return content_paths_with_order
 
 
+def flatten_resource_load_list(data_paths):
+    # resource_load_dict = {}
+    pass
+
+
 def read_openmw_cfg(cfg_path: str, verbose) -> None:  # TODO: verify this return type
     content = []
     data_paths = []
@@ -99,7 +104,7 @@ def read_openmw_cfg(cfg_path: str, verbose) -> None:  # TODO: verify this return
     emit_log("Found {} activated plugins...".format(len(content)))
     full_plugin_paths = get_content_paths(content, checked_data_paths)
     emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
-    emit_log("Current load order below:")
+    emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
     for num, p in full_plugin_paths.items():
         emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
                  verbose=verbose)
@@ -113,7 +118,7 @@ def parse_args(args: list) -> None:  # TODO: verify this return type
     verbose = False
     parser = argparse.ArgumentParser(description=DESCRIPTION, prog=PROGNAME)
     options = parser.add_argument_group("Options")
-    options.add_argument("-f", "--file", dest='openmw_cfg',
+    options.add_argument("-f", "--file", dest='openmw_cfg', metavar="CFG FILE",
                          help="Specify the path to an openmw.cfg file.")
     options.add_argument("-v", "--verbose", action="store_true",
                          help="Show extra output.")
