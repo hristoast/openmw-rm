@@ -17,6 +17,11 @@ RES_DIR_NAMES = ["BookArt", "Fonts", "Icons", "Meshes", "Music", "Sound", "Splas
 VERSION = "0.2"
 
 
+def _get_version():
+    # TODO: output based on git status
+    pass
+
+
 def get_terminal_dims() -> tuple:
     tty = os.popen('stty size', 'r')
     try:
@@ -27,7 +32,8 @@ def get_terminal_dims() -> tuple:
     return x, y
 
 
-def emit_log(msg: str, level=logging.INFO, quiet=False, verbose=False, *args, **kwargs) -> None:  # TODO: verify this return type
+def emit_log(msg: str, level=logging.INFO, quiet=False, verbose=False, *args, **kwargs) -> None:
+    """Logging wrapper."""
     if not quiet:
         if not verbose and int(get_terminal_dims()[0]) > 0:
             msg = textwrap.shorten(msg, width=int(get_terminal_dims()[0]) - 5,
@@ -43,11 +49,13 @@ def emit_log(msg: str, level=logging.INFO, quiet=False, verbose=False, *args, **
 
 
 def error_and_die(msg: str) -> SystemExit:
+    """Call sys.ext(1) with a formatted error message to stderr."""
     sys.stderr.write("ERROR: " + msg + " Exiting ..." + "\n")
     sys.exit(1)
 
 
 def check_openmw_cfg_path(path: str) -> T[bool, SystemExit]:
+    """Check if the given openmw.cfg path exists, exit 1 if not."""
     path_exists = os.path.isfile(path)
     if not path_exists:
         error_and_die("{} could not be found!".format(path))
@@ -85,11 +93,24 @@ def get_content_paths(content_names: list, data_paths: list) -> list:
 
 
 def flatten_resource_load_list(data_paths):
+    """
+    Traverse each data path, in order, checking for each asset that it adds.
+
+    Return a list of each asset in use and the full path to the canonical file
+    (the one in use when the game is loaded.)
+    """
     # resource_load_dict = {}
     pass
 
 
-def read_openmw_cfg(cfg_path: str, verbose) -> None:  # TODO: verify this return type
+def read_openmw_cfg(cfg_path: str, verbose) -> None:
+    """
+    Read the given openmw.cfg file and perform checks and verifications on it.
+
+    TODO: emit flattened asset lists and etc here too?
+    TODO: how does mlox know how to sort plugins?
+    TODO: and can it be done here, too?
+    """
     content = []
     data_paths = []
     check_openmw_cfg_path(cfg_path)
@@ -115,7 +136,7 @@ def read_openmw_cfg(cfg_path: str, verbose) -> None:  # TODO: verify this return
     # TODO: print out a sorted load order
 
 
-def parse_args(args: list) -> None:  # TODO: verify this return type
+def parse_args(args: list) -> None:
     force = False
     openmw_cfg = DEFAULT_CFG_FILE
     verbose = False
@@ -156,7 +177,7 @@ def parse_args(args: list) -> None:  # TODO: verify this return type
         datetime.now().strftime("%Y-%m-%d %H:%M:%S")), level=logging.DEBUG)
 
 
-def main() -> None:  # TODO: verify this return type
+def main() -> None:
     try:
         parse_args(sys.argv[1:])
     except KeyboardInterrupt:
