@@ -103,7 +103,7 @@ def flatten_resource_load_list(data_paths):
     pass
 
 
-def read_openmw_cfg(cfg_path: str, verbose) -> None:
+def read_openmw_cfg(cfg_path: str, verbose) -> tuple:
     """
     Read the given openmw.cfg file and perform checks and verifications on it.
 
@@ -122,18 +122,7 @@ def read_openmw_cfg(cfg_path: str, verbose) -> None:
             content.append(line)
         elif line.startswith('data='):
             data_paths.append(line)
-    emit_log("Found {} data paths...".format(len(data_paths)))
-    checked_data_paths = check_data_paths(data_paths)
-    emit_log("Verified {} as existing.".format(len(checked_data_paths)))
-    emit_log("Found {} activated plugins...".format(len(content)))
-    full_plugin_paths = get_content_paths(content, checked_data_paths)
-    emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
-    emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
-    for num, p in full_plugin_paths.items():
-        emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
-                 verbose=verbose)
-    # TODO: check all asset paths and print out which are the last loaded
-    # TODO: print out a sorted load order
+    return data_paths, content
 
 
 def parse_args(args: list) -> None:
@@ -141,6 +130,9 @@ def parse_args(args: list) -> None:
     openmw_cfg = DEFAULT_CFG_FILE
     verbose = False
     parser = argparse.ArgumentParser(description=DESCRIPTION, prog=PROGNAME)
+    actions = parser.add_argument_group("Actions")
+    actions.add_argument("-F", "--flatten", action="store_true")
+    actions.add_argument("-s", "--scan", action="store_true")
     options = parser.add_argument_group("Options")
     options.add_argument("-f", "--file", dest='openmw_cfg', metavar="CFG FILE",
                          help="Specify the path to an openmw.cfg file.")
@@ -169,8 +161,29 @@ def parse_args(args: list) -> None:
 
     emit_log("Force: {}".format(force), level=logging.DEBUG)
     emit_log("Verbose: {}".format(verbose), level=logging.DEBUG)
-    emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
-    read_openmw_cfg(openmw_cfg, verbose)
+
+    if parsed_args.flatten:
+        flatten_resource_load_list()
+    if parsed_args.scan or not parsed_args.flatten:
+        # Do a normal scan by default or if specified alongside anything else
+        emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
+        content, data_paths = read_openmw_cfg(openmw_cfg, verbose)
+
+        emit_log("Found {} data paths...".format(len(data_paths)))
+        checked_data_paths = check_data_paths(data_paths)
+        emit_log("Verified {} as existing.".format(len(checked_data_paths)))
+
+        emit_log("Found {} activated plugins...".format(len(content)))
+        full_plugin_paths = get_content_paths(content, checked_data_paths)
+        emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
+
+        emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
+        for num, p in full_plugin_paths.items():
+            emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
+                     verbose=verbose)
+
+        # TODO: check all asset paths and print out which are the last loaded
+        # TODO: print out a sorted load order
 
     emit_log("END {0} run at {1}".format(
         PROGNAME,

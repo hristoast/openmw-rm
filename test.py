@@ -66,7 +66,7 @@ class OpenMwRmTestCase(TestCase):
         sys.stdout = open('/dev/null', 'w')
         sys.stderr = open('/dev/null', 'w')
         r = read_openmw_cfg(self.cfg, False)
-        self.assertEqual(r, None)
+        self.assertIsInstance(r, tuple)
         sys.stdout.close()
         sys.stderr.close()
         sys.stdout = old_stdout
