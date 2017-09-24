@@ -134,6 +134,7 @@ def parse_args(args: list) -> None:  # TODO: verify this return type
 
     emit_log("Force: {}".format(force), level=logging.DEBUG)
     emit_log("Verbose: {}".format(verbose), level=logging.DEBUG)
+    emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
     read_openmw_cfg(openmw_cfg)
 
     emit_log("END {0} run at {1}".format(
