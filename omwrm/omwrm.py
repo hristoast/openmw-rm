@@ -158,10 +158,8 @@ def flatten_resource_load_list(checked_data_paths_list: list, v: bool) -> dict:
                                         continue
                                 if not key_match:
                                     _store_asset(resource_load_dict, _res_path, _f_low, _f, len(res_dict_copy.keys()) + 1)
-                                    res_dict_copy = resource_load_dict.copy()
                             else:
                                 _store_asset(resource_load_dict, _res_path, _f_low, _f, 1)
-                                res_dict_copy = resource_load_dict.copy()
 
     return resource_load_dict
 
