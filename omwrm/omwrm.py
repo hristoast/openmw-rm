@@ -104,6 +104,10 @@ def flatten_resource_load_list(checked_data_paths_list: list, v: bool) -> dict:
     (the one in use when the game is loaded.)
 
     This is a nonexact approximation of how the actual OpenMW loading happens.
+    Also, if a mod uses a plugin to load one texture instead of another, this
+    program has no way of knowing about that and so "dupes" will be stored in
+    that sense.
+
     TODO: implement this exactly as is done in OpenMW
     """
     def _store_asset(_dict, _res, _file_low, _file, _count):
@@ -234,6 +238,19 @@ def parse_args(args: list) -> None:
     checked_data_paths = check_data_paths(data_paths)
     full_plugin_paths = get_content_paths(content, checked_data_paths)
 
+    if parsed_args.scan or not parsed_args.flatten:
+        # Do a normal scan by default or if specified alongside anything else
+        emit_log("Running load order scan...")
+        emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
+        emit_log("Found {} data paths...".format(len(data_paths)))
+        emit_log("Verified {} as existing.".format(len(checked_data_paths)))
+        emit_log("Found {} activated plugins...".format(len(content)))
+        emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
+        emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
+        for num, p in full_plugin_paths.items():
+            emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
+                     verbose=verbose)
+
     # Do stuff with said data
     if parsed_args.flatten:
         emit_log("Generating flattened asset list (this will take several minutes)...")
@@ -248,19 +265,6 @@ def parse_args(args: list) -> None:
             emit_log("Asset loadout below:", level=logging.DEBUG)
             for k, v in sorted(flat_data.items()):
                 emit_log("{0} Using: {1}".format(k, v), level=logging.DEBUG)
-
-    if parsed_args.scan or not parsed_args.flatten:
-        # Do a normal scan by default or if specified alongside anything else
-        emit_log("Running load order scan...")
-        emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
-        emit_log("Found {} data paths...".format(len(data_paths)))
-        emit_log("Verified {} as existing.".format(len(checked_data_paths)))
-        emit_log("Found {} activated plugins...".format(len(content)))
-        emit_log("Verified {} full plugin paths.".format(len(full_plugin_paths)))
-        emit_log("Current load order below:", level=logging.DEBUG, verbose=verbose)
-        for num, p in full_plugin_paths.items():
-            emit_log("{0}: {1}".format(str(num), p), level=logging.DEBUG,
-                     verbose=verbose)
 
     emit_log("END {0} run at {1}".format(
         PROGNAME,
