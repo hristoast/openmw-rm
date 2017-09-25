@@ -191,8 +191,10 @@ def parse_args(args: list) -> None:
     verbose = False
     parser = argparse.ArgumentParser(description=DESCRIPTION, prog=PROGNAME)
     actions = parser.add_argument_group("Actions")
-    actions.add_argument("-F", "--flatten", action="store_true")
-    actions.add_argument("-s", "--scan", action="store_true")
+    actions.add_argument("-F", "--flatten", action="store_true",
+                         help="Generate a flattened resource list.")
+    actions.add_argument("-s", "--scan", action="store_true",
+                         help="Run a load order scan.")
     options = parser.add_argument_group("Options")
     options.add_argument("-f", "--file", dest='openmw_cfg', metavar="CFG FILE",
                          help="Specify the path to an openmw.cfg file.")
@@ -234,7 +236,7 @@ def parse_args(args: list) -> None:
 
     # Do stuff with said data
     if parsed_args.flatten:
-        emit_log("Generating flattened asset list...", level=logging.DEBUG)
+        emit_log("Generating flattened asset list (this will take several minutes)...")
         flat_data = flatten_resource_load_list(reversed(checked_data_paths), verbose)
 
         if out_file:
@@ -249,6 +251,7 @@ def parse_args(args: list) -> None:
 
     if parsed_args.scan or not parsed_args.flatten:
         # Do a normal scan by default or if specified alongside anything else
+        emit_log("Running load order scan...")
         emit_log("Reading cfg file at: {}".format(os.path.abspath(openmw_cfg)))
         emit_log("Found {} data paths...".format(len(data_paths)))
         emit_log("Verified {} as existing.".format(len(checked_data_paths)))
