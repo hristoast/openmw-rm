@@ -13,8 +13,12 @@ DESCRIPTION = "OpenMW Resource Manager - reads an openmw.cfg file to produce res
 LICENSE = 'GPLv3'
 LOGFMT = '==> %(message)s'
 PROGNAME = "openmw-rm"
-RES_DIR_NAMES = ["BookArt", "Fonts", "Icons", "Meshes", "Music", "Sound", "Splash", "Textures", "Video"]
-VERSION = "0.4"
+RES_DIR_NAMES = ["bookart", "fonts", "icons", "meshes", "music", "sound", "splash", "textures", "video"]
+VERSION = "0.5"
+
+
+# TODO: python and os check
+# TODO: windows and macos support
 
 
 def _get_version():
@@ -92,15 +96,70 @@ def get_content_paths(content_names: list, data_paths: list) -> list:
     return content_paths_with_order
 
 
-def flatten_resource_load_list(cfg_path: str, verbose):
+def flatten_resource_load_list(checked_data_paths_list: list, v: bool) -> dict:
     """
     Traverse each data path, in order, checking for each asset that it adds.
 
     Return a list of each asset in use and the full path to the canonical file
     (the one in use when the game is loaded.)
+
+    This is a nonexact approximation of how the actual OpenMW loading happens.
+    TODO: implement this exactly as is done in OpenMW
     """
+    def _store_asset(_dict, _res, _file_low, _file, _count):
+        emit_log("Storing #{0}: {1}".format(_count,
+                                            os.path.join(_res, _file)),
+                 level=logging.DEBUG, verbose=v)
+        _dict.update({_file_low: os.path.join(_res, _file)})
+
     resource_load_dict = {}
-    pass
+
+    for _path in checked_data_paths_list:
+        for ls in os.listdir(_path):
+            # Lower case so we can check against predefined names
+            _ls = ls.lower()
+            for _dir in RES_DIR_NAMES:
+                # Is this a valid resource directory
+                # path (e.g. meshes, textures)?
+                if _ls == _dir:
+                    _res_path = os.path.join(_path, ls)
+                    # List out the valid resource directory
+                    # TODO: support for recursive listing;
+                    # TODO: right now we only go one deep!
+                    for root, dirs, files in os.walk(_res_path):
+                        for _f in files:
+                            # We're going to store the file name in all
+                            # lowercase, do this now so we can later check
+                            # to see if the file has been stored.
+                            _f_low = _f.lower()
+                            _f_low_nosuffix = _f_low.split('.')[0]
+                            res_dict_copy = resource_load_dict.copy()
+                            emit_log("Examining #{0}: {1}".format(len(res_dict_copy.keys()) + 1,
+                                                                  os.path.join(_res_path, _f)),
+                                     level=logging.DEBUG, verbose=v)
+                            if len(res_dict_copy.keys()) > 0:
+                                key_match = False
+                                for _k in res_dict_copy.keys():
+                                    # Stick a period at the end to prevent false matches
+                                    if _k.startswith(_f_low_nosuffix + '.'):
+                                        key_match = True
+                                        emit_log("Rejecting #{0} {1} as there is already an entry for it!".format(
+                                            len(res_dict_copy.keys()) + 1,
+                                            os.path.join(_res_path, _f)),
+                                            level=logging.DEBUG, verbose=v)
+                                        # We have a match, break out of this loop
+                                        break
+                                    else:
+                                        # No match, keep checking against keys
+                                        continue
+                                if not key_match:
+                                    _store_asset(resource_load_dict, _res_path, _f_low, _f, len(res_dict_copy.keys()) + 1)
+                                    res_dict_copy = resource_load_dict.copy()
+                            else:
+                                _store_asset(resource_load_dict, _res_path, _f_low, _f, 1)
+                                res_dict_copy = resource_load_dict.copy()
+
+    return resource_load_dict
 
 
 def read_openmw_cfg(cfg_path: str, verbose) -> tuple:
@@ -126,6 +185,7 @@ def read_openmw_cfg(cfg_path: str, verbose) -> tuple:
 
 
 def parse_args(args: list) -> None:
+    flat_data = None
     force = False
     openmw_cfg = DEFAULT_CFG_FILE
     verbose = False
@@ -138,6 +198,9 @@ def parse_args(args: list) -> None:
                          help="Specify the path to an openmw.cfg file.")
     options.add_argument("-v", "--verbose", action="store_true",
                          help="Show extra output.")
+    options.add_argument("-W", "--write-file", dest='out_file',
+                         metavar="OUT FILE",
+                         help="Specify the path to an output file.")
     parser.add_argument("--version", action="version",
                         version=' '.join((PROGNAME, VERSION)),
                         help=argparse.SUPPRESS)
@@ -145,6 +208,8 @@ def parse_args(args: list) -> None:
 
     if parsed_args.openmw_cfg:
         openmw_cfg = parsed_args.openmw_cfg
+    if parsed_args.out_file:
+        out_file = parsed_args.out_file
     if parsed_args.verbose:
         verbose = True
 
@@ -169,7 +234,18 @@ def parse_args(args: list) -> None:
 
     # Do stuff with said data
     if parsed_args.flatten:
-        flatten_resource_load_list(content, data_paths)
+        emit_log("Generating flattened asset list...", level=logging.DEBUG)
+        flat_data = flatten_resource_load_list(reversed(checked_data_paths), verbose)
+
+        if out_file:
+            with open(out_file, 'w') as f:
+                for k, v in sorted(flat_data.items()):
+                    f.write("{0}: {1}\n".format(k, v))
+                f.close()
+        else:
+            emit_log("Asset loadout below:", level=logging.DEBUG)
+            for k, v in sorted(flat_data.items()):
+                emit_log("{0} Using: {1}".format(k, v), level=logging.DEBUG)
 
     if parsed_args.scan or not parsed_args.flatten:
         # Do a normal scan by default or if specified alongside anything else
